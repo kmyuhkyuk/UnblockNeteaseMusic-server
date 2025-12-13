@@ -1,25 +1,7 @@
 name: Build binaries for UnblockNeteaseMusic
 
 on:
-    push:
-        branches:
-            - 'enhanced'
-        paths-ignore:
-            - '**.md'
-            - 'precompiled/*.js'
-
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - reopened
-        paths-ignore:
-            - '**.md'
-            - 'precompiled/*.js'
-
-    release:
-        types:
-            - published
+    workflow_dispatch:
 
 jobs:
     build:

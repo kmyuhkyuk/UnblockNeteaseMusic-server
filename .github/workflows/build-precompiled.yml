@@ -1,15 +1,6 @@
 name: Build precompiled JavaScript file
 
 on:
-    push:
-        branches:
-            - enhanced
-        paths:
-            - '*.js'
-            - 'src/**.js'
-            - '.github/workflows/*.yml'
-            - 'package.json'
-            - 'yarn.lock'
     workflow_dispatch:
 
 jobs:
