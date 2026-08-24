@@ -1,13 +1,18 @@
 name: Build cross-platform docker image
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to build and push'
+        required: true
+        type: string
+        default: 'latest'
 
 env:
-    platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
-    image: kmyuhkyuk/unblock-netease-music-enhanced
-    develop_tag: latest
-    released_tag: release
+  platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  IMAGE_NAME: unblock-netease-music-enhanced
 
 jobs:
     build-and-publish:
@@ -17,9 +22,14 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v7
 
-            - name: Get the current tag name
-              uses: olegtarasov/get-tag@v2.1.4
-              id: tagName
+            - name: Extract Docker metadata (tags, labels)
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+                tags: |
+                  type=raw,value=latest
+                  type=raw,value=${{ github.event.inputs.tag || github.ref_name }},enable=${{ (github.event.inputs.tag || github.ref_name) != 'latest' }}
 
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v4
@@ -35,25 +45,11 @@ jobs:
 
             - name: Build and push the latest version
               uses: docker/build-push-action@v7
-              if: github.event_name != 'release'
               with:
                   context: .
                   platforms: ${{ env.platforms }}
                   push: true
-                  tags: ${{ env.image }}:${{ env.develop_tag }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-
-            - name: Build and push the released version
-              uses: docker/build-push-action@v7
-              if: github.event_name == 'release'
-              with:
-                  context: .
-                  platforms: ${{ env.platforms }}
-                  push: true
-                  tags: >-
-                      ${{ env.image }}:${{ env.develop_tag }},
-                      ${{ env.image }}:${{ env.released_tag }},
-                      ${{ env.image }}:${{ steps.tagName.outputs.tag }}
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
