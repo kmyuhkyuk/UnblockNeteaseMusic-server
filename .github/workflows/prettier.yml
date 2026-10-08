@@ -1,11 +1,6 @@
 name: Run Prettier
 
 on:
-    push:
-        branches:
-            - enhanced
-        paths-ignore:
-            - 'precompiled/**'
     workflow_dispatch:
 
 jobs:
